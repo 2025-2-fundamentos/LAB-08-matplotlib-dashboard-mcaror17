@@ -35,3 +35,106 @@ def pregunta_01():
     * Su código debe crear la carpeta `docs` si no existe.
 
     """
+    import os
+    from pathlib import Path
+
+    import pandas as pd
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    # paths
+    csv_path = Path("files") / "input" / "shipping-data.csv"
+    docs_dir = Path("docs")
+    docs_dir.mkdir(parents=True, exist_ok=True)
+
+    # read data
+    df = pd.read_csv(csv_path)
+
+    # 1) Shipping per warehouse (counts)
+    fig1, ax1 = plt.subplots(figsize=(6, 4))
+    counts = df["Warehouse_block"].value_counts().sort_index()
+    counts.plot(kind="bar", color="#4C72B0", ax=ax1)
+    ax1.set_title("Shipments per Warehouse Block")
+    ax1.set_xlabel("Warehouse Block")
+    ax1.set_ylabel("Number of Shipments")
+    fig1.tight_layout()
+    fig1.savefig(docs_dir / "shipping_per_warehouse.png", dpi=150)
+    plt.close(fig1)
+
+    # 2) Mode of shipment (counts)
+    fig2, ax2 = plt.subplots(figsize=(6, 4))
+    mode_counts = df["Mode_of_Shipment"].value_counts().sort_index()
+    mode_counts.plot(kind="bar", color="#55A868", ax=ax2)
+    ax2.set_title("Mode of Shipment")
+    ax2.set_xlabel("Mode")
+    ax2.set_ylabel("Number of Shipments")
+    fig2.tight_layout()
+    fig2.savefig(docs_dir / "mode_of_shipment.png", dpi=150)
+    plt.close(fig2)
+
+    # 3) Average customer rating by warehouse
+    fig3, ax3 = plt.subplots(figsize=(6, 4))
+    avg_rating = df.groupby("Warehouse_block")["Customer_rating"].mean().sort_index()
+    avg_rating.plot(kind="bar", color="#C44E52", ax=ax3)
+    ax3.set_title("Average Customer Rating by Warehouse")
+    ax3.set_xlabel("Warehouse Block")
+    ax3.set_ylabel("Average Rating")
+    fig3.tight_layout()
+    fig3.savefig(docs_dir / "average_customer_rating.png", dpi=150)
+    plt.close(fig3)
+
+    # 4) Weight distribution
+    fig4, ax4 = plt.subplots(figsize=(6, 4))
+    df["Weight_in_gms"].plot(kind="hist", bins=20, color="#8172B2", ax=ax4)
+    ax4.set_title("Weight Distribution (gms)")
+    ax4.set_xlabel("Weight in gms")
+    ax4.set_ylabel("Frequency")
+    fig4.tight_layout()
+    fig4.savefig(docs_dir / "weight_distribution.png", dpi=150)
+    plt.close(fig4)
+
+    # create simple HTML dashboard
+    index_path = docs_dir / "index.html"
+    html = f"""
+    <!doctype html>
+    <html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Shipping Dashboard</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; margin: 20px; }}
+            .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }}
+            .card {{ border: 1px solid #ddd; padding: 10px; box-shadow: 2px 2px 4px rgba(0,0,0,0.05); }}
+            img {{ max-width: 100%; height: auto; }}
+        </style>
+    </head>
+    <body>
+        <h1>Shipping Dashboard</h1>
+        <div class="grid">
+            <div class="card">
+                <h3>Shipments per Warehouse</h3>
+                <img src="shipping_per_warehouse.png" alt="Shipments per Warehouse">
+            </div>
+            <div class="card">
+                <h3>Mode of Shipment</h3>
+                <img src="mode_of_shipment.png" alt="Mode of Shipment">
+            </div>
+            <div class="card">
+                <h3>Average Customer Rating</h3>
+                <img src="average_customer_rating.png" alt="Average Customer Rating">
+            </div>
+            <div class="card">
+                <h3>Weight Distribution</h3>
+                <img src="weight_distribution.png" alt="Weight Distribution">
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+    index_path.write_text(html, encoding="utf-8")
+
+    return None
